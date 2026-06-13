@@ -100,7 +100,15 @@ async def lifespan(app: FastAPI):
     global backend
     backend = HiggsBackend() if BACKEND == "higgs" else MMSBackend()
     backend.warmup()
-    print(f"[tts] backend={backend.name} device={DEVICE} ready")
+    cuda = torch.cuda.is_available()
+    gpu = torch.cuda.get_device_name(0) if cuda else "cpu"
+    if DEVICE != "cuda":
+        print("[tts] WARNING: running on CPU — MMS will be ~20-40x slower than "
+              "the 5090. torch.cuda.is_available() is False; the cu128 torch "
+              "wheel likely didn't install. Check: "
+              'uv run python -c "import torch; print(torch.cuda.is_available())"')
+    print(f"[tts] backend={backend.name} device={DEVICE} cuda_available={cuda} "
+          f"gpu={gpu} ready")
     yield
 
 
@@ -115,7 +123,14 @@ class SynthesizeRequest(BaseModel):
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "backend": BACKEND, "device": DEVICE}
+    cuda = torch.cuda.is_available()
+    return {
+        "status": "ok",
+        "backend": BACKEND,
+        "device": DEVICE,
+        "cuda_available": cuda,
+        "gpu": torch.cuda.get_device_name(0) if cuda else "cpu",
+    }
 
 
 @app.post("/synthesize")

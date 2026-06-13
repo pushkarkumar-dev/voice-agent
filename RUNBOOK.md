@@ -8,12 +8,15 @@ Last updated: 2026-06-13 (after milestone 2 code, before its first real run)
       verified: EN 630ms, HI 796ms, model `huihui-qwen3-vl-8b-instruct-abliterated`.
 - [ ] **Milestone 2 — STT**: code complete on both sides, **never run on the
       Windows box yet**. That's the next action (below).
-- [~] **Milestone 3 — TTS** (port 8003): first attempt with Higgs crashed
-      (needs SGLang). Re-pointed at **MMS-TTS** backend (EN+HI). Retest with
-      step 4 below.
-- [~] **Milestone 4 — full voice loop** (`client/voice.py`): STT+LLM verified
-      working in the first run (transcribed + replied correctly); only the TTS
-      stage failed. Should close once MMS TTS works. Retest with step 5.
+- [x] **Milestone 3 — TTS** (port 8003): MMS-TTS backend works (EN verified).
+- [x] **Milestone 4 — full voice loop** (`client/voice.py`): **EN verified end
+      to end 2026-06-13.** First baseline: stt 494ms, llm 608ms, tts **22s**,
+      voice-to-voice 23s. TTS is the outlier — almost certainly running on CPU
+      (MMS on the 5090 should be <1s). Confirm via `/health` `device`/`gpu`
+      and the torch CUDA fix below. **TODO:** Hindi end-to-end turn (exit
+      criterion); GPU TTS.
+- **Phase 1 = walking skeleton: DONE** (EN). Next: fix CPU-TTS, verify HI,
+  then Phase 2 (streaming).
 
 ## Step 1 — Get the repo onto the Windows box (once)
 
@@ -131,6 +134,7 @@ metrics.jsonl has the numbers.
 | ctranslate2: missing cuDNN/cuBLAS DLLs | In `server/`: `uv add nvidia-cublas-cu12 nvidia-cudnn-cu12`, add their `bin` dirs to PATH |
 | ctranslate2 rejects the 5090 (sm_120) | Update: `uv lock --upgrade-package ctranslate2 && uv sync`; worst case `$env:STT_DEVICE="cpu"` to prove plumbing |
 | Mac records 0s / silent wav | Mic permission denied, or wrong input device — check `sounddevice.query_devices()` (Yeti was default when built) |
+| TTS very slow (10s+ for a short reply) | MMS on CPU. `curl :8003/health` → if `device:cpu`, torch lacks CUDA. In `server/`: `uv run python -c "import torch;print(torch.cuda.is_available())"`; if False, `uv sync` didn't pull the cu128 torch wheel — `uv pip install --reinstall --index https://download.pytorch.org/whl/cu128 torch` and restart |
 | LM Studio 400 errors | Model not loaded in LM Studio, or thinking model selected — stick to the model in `shared/config.toml` |
 
 ## Continuing development (any Claude Code session)
