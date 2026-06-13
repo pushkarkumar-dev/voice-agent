@@ -8,7 +8,7 @@ Last updated: 2026-06-13 (after milestone 2 code, before its first real run)
       verified: EN 630ms, HI 796ms, model `huihui-qwen3-vl-8b-instruct-abliterated`.
 - [ ] **Milestone 2 — STT**: code complete on both sides, **never run on the
       Windows box yet**. That's the next action (below).
-- [~] **Milestone 3 — TTS** (port 8002): first attempt with Higgs crashed
+- [~] **Milestone 3 — TTS** (port 8003): first attempt with Higgs crashed
       (needs SGLang). Re-pointed at **MMS-TTS** backend (EN+HI). Retest with
       step 4 below.
 - [~] **Milestone 4 — full voice loop** (`client/voice.py`): STT+LLM verified
@@ -85,23 +85,23 @@ New PowerShell window on the Windows box (same `server/` env):
 ```powershell
 cd VoiceAgent\server
 # once, as Administrator:
-netsh advfirewall firewall add rule name="VoiceAgent TTS" dir=in action=allow protocol=TCP localport=8002
+netsh advfirewall firewall add rule name="VoiceAgent TTS" dir=in action=allow protocol=TCP localport=8003
 
 $env:CUDA_VISIBLE_DEVICES = "1"   # GPU 2
-uv run uvicorn tts_service:app --host 0.0.0.0 --port 8002
+uv run uvicorn tts_service:app --host 0.0.0.0 --port 8003
 ```
 
 Backend defaults to **MMS-TTS** (small per-language models, fast download).
 Wait for `[tts] backend=mms device=cuda ready`, then from the Mac:
 
 ```bash
-curl http://192.168.0.158:8002/health
+curl http://192.168.0.158:8003/health
 # English:
-curl -s -X POST http://192.168.0.158:8002/synthesize \
+curl -s -X POST http://192.168.0.158:8003/synthesize \
   -H "Content-Type: application/json" \
   -d '{"text":"Hello from the voice agent."}' -o /tmp/en.wav && afplay /tmp/en.wav
 # Hindi:
-curl -s -X POST http://192.168.0.158:8002/synthesize \
+curl -s -X POST http://192.168.0.158:8003/synthesize \
   -H "Content-Type: application/json" \
   -d '{"text":"नमस्ते, मैं आपका वॉइस एजेंट हूँ।","language":"hi"}' -o /tmp/hi.wav && afplay /tmp/hi.wav
 ```
@@ -111,7 +111,7 @@ skeleton voice; see PROJECT.md decisions log. Quality is modest by design.)
 
 ## Step 5 — Full voice loop (closes Phase 1)
 
-With all three services up (LM Studio, STT :8001, TTS :8002):
+With all three services up (LM Studio, STT :8001, TTS :8003):
 
 ```bash
 uv run python -m client.voice

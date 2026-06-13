@@ -54,7 +54,7 @@ to prove the plumbing.
 
 ## TTS service (GPU 2) — milestone 3
 
-`server/tts_service.py`, port **8002**, pluggable backend via `TTS_BACKEND`.
+`server/tts_service.py`, port **8003**, pluggable backend via `TTS_BACKEND`.
 Same `server/` env as STT (`uv sync` covers both; torch comes from the cu128
 index — Windows default torch is CPU-only and the 5090 needs cu128+).
 
@@ -67,28 +67,28 @@ index — Windows default torch is CPU-only and the 5090 needs cu128+).
 
 ```powershell
 # once, as Administrator:
-netsh advfirewall firewall add rule name="VoiceAgent TTS" dir=in action=allow protocol=TCP localport=8002
+netsh advfirewall firewall add rule name="VoiceAgent TTS" dir=in action=allow protocol=TCP localport=8003
 
 $env:CUDA_VISIBLE_DEVICES = "1"   # GPU 2 in our numbering
 # TTS_BACKEND defaults to mms; set "higgs" only for bake-off experiments
-uv run uvicorn tts_service:app --host 0.0.0.0 --port 8002
+uv run uvicorn tts_service:app --host 0.0.0.0 --port 8003
 ```
 
 Wait for `[tts] backend=mms device=cuda ready`. Smoke test from the Mac:
 
 ```bash
-curl http://192.168.0.158:8002/health
+curl http://192.168.0.158:8003/health
 # English (default voice):
-curl -s -X POST http://192.168.0.158:8002/synthesize \
+curl -s -X POST http://192.168.0.158:8003/synthesize \
   -H "Content-Type: application/json" \
   -d '{"text":"Hello from the voice agent."}' -o /tmp/en.wav && afplay /tmp/en.wav
 # Hindi (Devanagari + language code routes the hin voice):
-curl -s -X POST http://192.168.0.158:8002/synthesize \
+curl -s -X POST http://192.168.0.158:8003/synthesize \
   -H "Content-Type: application/json" \
   -d '{"text":"नमस्ते, मैं आपका वॉइस एजेंट हूँ।","language":"hi"}' -o /tmp/hi.wav && afplay /tmp/hi.wav
 ```
 
 ## Windows firewall
 
-Port 1234 is already reachable from the LAN. 8001/8002 will need inbound
+Port 1234 is already reachable from the LAN. 8001/8003 will need inbound
 rules when those services land.

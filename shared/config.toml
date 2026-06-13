@@ -19,5 +19,6 @@ max_tokens = 512
 port = 8001
 
 [tts]
-# FastAPI wrapper around Higgs Audio v3 (GPU 2) — milestone 3
-port = 8002
+# MMS-TTS service (GPU 2) — milestone 3.
+# 8003, not 8002: port 8002 was unusable on the Windows box.
+port = 8003
