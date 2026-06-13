@@ -15,8 +15,12 @@ Last updated: 2026-06-13 (after milestone 2 code, before its first real run)
       (MMS on the 5090 should be <1s). Confirm via `/health` `device`/`gpu`
       and the torch CUDA fix below. **TODO:** Hindi end-to-end turn (exit
       criterion); GPU TTS.
-- **Phase 1 = walking skeleton: DONE** (EN). Next: fix CPU-TTS, verify HI,
-  then Phase 2 (streaming).
+- **Phase 1 = walking skeleton: DONE** (EN). Carryover: fix CPU-TTS, verify HI.
+- [~] **Phase 2 — streaming** (`client/voice_stream.py`): built. LLM streaming
+      + sentence chunking verified live from the Mac (first sentence ~0.77s,
+      ttft ~0.42s). Full audio path needs a home test — run step 6 below. The
+      headline metric is now **ttfa** (time-to-first-audio); compare it against
+      Phase 1's voice-to-voice. Real gains need GPU TTS (see CPU-TTS fix).
 
 ## Step 1 — Get the repo onto the Windows box (once)
 
@@ -125,6 +129,21 @@ number (everything between end-of-recording and start-of-playback). Expect
 seconds, not milliseconds — it's sequential and non-streaming on purpose;
 Phase 2 fixes that. **Phase 1 exit:** EN and HI turns work end-to-end and
 metrics.jsonl has the numbers.
+
+## Step 6 — Streaming voice loop (Phase 2)
+
+Same three services up. From the Mac:
+
+```bash
+uv run python -m tests.test_text     # sentence chunker unit tests (no GPU)
+uv run python -m client.voice_stream # streaming push-to-talk
+```
+
+You should hear the first sentence start playing while later sentences are
+still being generated/synthesized. Per-turn line logs `ttft`,
+`tt_first_sentence`, `ttfa`, `total`. Compare `ttfa` here vs `voice-to-voice`
+from `client.voice` (Phase 1) on the same prompt — that delta is the streaming
+win. Test EN and HI.
 
 ## Troubleshooting
 
