@@ -52,10 +52,29 @@ Troubleshooting: if ctranslate2 complains about missing cuDNN/cuBLAS DLLs,
 ctranslate2 to the latest release. `STT_DEVICE=cpu` works as a slow fallback
 to prove the plumbing.
 
-## TTS service (GPU 2) — milestone 3, not yet built
+## TTS service (GPU 2) — milestone 3
 
-- FastAPI wrapper around Higgs Audio v3 4B, port **8002**.
-- TODO: env, model download, `CUDA_VISIBLE_DEVICES`, firewall rule for 8002.
+Higgs Audio v3 4B via the HF transformers TTS pipeline
+(`server/tts_service.py`), port **8002**, 24kHz wav out. Same `server/` env
+as STT (`uv sync` covers both; torch comes from the cu128 index — Windows
+default torch is CPU-only and the 5090 needs cu128+).
+
+```powershell
+# once, as Administrator:
+netsh advfirewall firewall add rule name="VoiceAgent TTS" dir=in action=allow protocol=TCP localport=8002
+
+$env:CUDA_VISIBLE_DEVICES = "1"   # GPU 2 in our numbering
+uv run uvicorn tts_service:app --host 0.0.0.0 --port 8002
+```
+
+First run downloads ~8GB of weights. Smoke test from the Mac:
+
+```bash
+curl http://192.168.0.158:8002/health
+curl -s -X POST http://192.168.0.158:8002/synthesize \
+  -H "Content-Type: application/json" \
+  -d '{"text":"Hello from the voice agent."}' -o /tmp/tts.wav && afplay /tmp/tts.wav
+```
 
 ## Windows firewall
 

@@ -1,11 +1,24 @@
 [project]
 name = "voiceagent-server"
 version = "0.1.0"
-description = "Model services for the Windows GPU box (STT now, TTS next)"
+description = "Model services for the Windows GPU box (STT + TTS)"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115",
     "uvicorn>=0.30",
     "python-multipart>=0.0.9",
     "faster-whisper>=1.1",
+    "transformers>=4.50",
+    "accelerate>=1.0",
+    "torch>=2.7",
+    "soundfile>=0.12",
 ]
+
+# Windows default torch wheels are CPU-only; the 5090 (sm_120) needs cu128+.
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cu128" }]

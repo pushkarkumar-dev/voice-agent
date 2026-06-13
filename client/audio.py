@@ -44,6 +44,16 @@ def record_push_to_talk() -> bytes:
     return _pcm_to_wav(pcm.tobytes())
 
 
+def play_wav(wav_bytes: bytes) -> None:
+    """Blocking playback of wav bytes (any sample rate the file declares)."""
+    with wave.open(io.BytesIO(wav_bytes), "rb") as w:
+        rate = w.getframerate()
+        channels = w.getnchannels()
+        frames = w.readframes(w.getnframes())
+    pcm = np.frombuffer(frames, dtype=np.int16).reshape(-1, channels)
+    sd.play(pcm, samplerate=rate, blocking=True)
+
+
 def _pcm_to_wav(pcm: bytes) -> bytes:
     buf = io.BytesIO()
     with wave.open(buf, "wb") as w:

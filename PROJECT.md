@@ -39,7 +39,7 @@ leaves ample room on 32GB). LAN hop adds ~1–5ms per leg — negligible.
 |---|---|---|---|
 | STT | Qwen3-ASR 1.7B (Jan 2026) | Whisper large-v3-turbo (phase-1 baseline, frictionless via faster-whisper) | Open SOTA, 52 languages incl. Hindi, timestamps |
 | LLM | LM Studio (OpenAI-compatible API), model TBD per session | Ollama, then vLLM (WSL2) for deployment phase | Already in use on the Windows box; API-compatible swap later |
-| TTS | **Higgs Audio v3 4B** (chat-native, streams audio before sentence completes; SGLang-Omni serving since 2026-06-04) | Kokoro (tiny/fast debug baseline) | Only top-tier open TTS with Hindi (102 languages). Qwen3-TTS **rejected**: no Hindi (10 langs only) |
+| TTS | **Higgs Audio v3 4B** (chat-native, HF transformers pipeline; 24kHz wav out) | Kokoro (tiny/fast debug baseline) | Only top-tier open TTS with Hindi (85 production-quality of 100+ languages). Qwen3-TTS **rejected**: no Hindi (10 langs only) |
 | VAD | Silero VAD | — | De-facto standard |
 
 NVIDIA Parakeet rejected: English-only, and we need Hindi + Hinglish
@@ -64,6 +64,9 @@ code-switching.
   reasoning can't be disabled through LM Studio's API (tried
   `chat_template_kwargs` and `/no_think`) — reasoning tokens are unusable for
   voice latency. Revisit model choice in Phase 4.
+- **2026-06-13** — Serving stacks constrained to what's familiar: LM Studio,
+  Ollama, llama.cpp, vLLM, HF transformers. **No SGLang.** Higgs Audio v3 runs
+  via the HF transformers TTS pipeline.
 - **2026-06-13** — Open (decide at Phase 6 start): Qwen3-VL as the *brain*
   (replaces the text LLM, agent natively sees) vs *sidecar captioner* feeding
   frame descriptions into the text LLM's context. Sidecar is simpler; brain is
@@ -101,8 +104,9 @@ pick up from PROJECT.md + the current phase spec).
 - **Phase 4 — Model bake-off**: Qwen3-ASR vs Whisper on English/Hindi/Hinglish;
   latency + WER harness; Hindi TTS quality eval. *Exit: data-backed final
   model picks.*
-- **Phase 5 — Deployment hardening + web client**: vLLM (WSL2), SGLang-Omni
-  for Higgs, service supervision/auto-start on the Windows box; browser client
+- **Phase 5 — Deployment hardening + web client**: vLLM (WSL2) for the LLM,
+  optimized Higgs serving (vLLM if supported, else tuned transformers),
+  service supervision/auto-start on the Windows box; browser client
   (WebSocket/WebRTC audio) with live sound-wave visualization (Web Audio
   `AnalyserNode` + canvas) for both listening and speaking states. *Exit:
   survives reboots, usable from any device at home, waveform animates with

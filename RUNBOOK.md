@@ -8,8 +8,10 @@ Last updated: 2026-06-13 (after milestone 2 code, before its first real run)
       verified: EN 630ms, HI 796ms, model `huihui-qwen3-vl-8b-instruct-abliterated`.
 - [ ] **Milestone 2 — STT**: code complete on both sides, **never run on the
       Windows box yet**. That's the next action (below).
-- [ ] Milestone 3 — TTS service (Higgs Audio v3): not started.
-- [ ] Milestone 4 — full voice loop + EN/HI smoke tests: not started.
+- [ ] **Milestone 3 — TTS** (Higgs Audio v3 via HF transformers, port 8002):
+      code complete, never run. Test right after milestone 2 (step 4 below).
+- [ ] **Milestone 4 — full voice loop** (`client/voice.py`): code complete,
+      never run. Test last (step 5 below); closes Phase 1.
 
 ## Step 1 — Get the repo onto the Windows box (once)
 
@@ -74,6 +76,44 @@ appended to `metrics.jsonl` automatically.
 server-side inference is well under ~1s for short clips (a 5090 should do a
 5s clip in a few hundred ms).
 
+## Step 4 — TTS service (after STT works)
+
+New PowerShell window on the Windows box (same `server/` env):
+
+```powershell
+cd VoiceAgent\server
+# once, as Administrator:
+netsh advfirewall firewall add rule name="VoiceAgent TTS" dir=in action=allow protocol=TCP localport=8002
+
+$env:CUDA_VISIBLE_DEVICES = "1"   # GPU 2
+uv run uvicorn tts_service:app --host 0.0.0.0 --port 8002
+```
+
+First run downloads ~8GB (Higgs Audio v3 4B). From the Mac:
+
+```bash
+curl http://192.168.0.158:8002/health
+curl -s -X POST http://192.168.0.158:8002/synthesize \
+  -H "Content-Type: application/json" \
+  -d '{"text":"Hello from the voice agent."}' -o /tmp/tts.wav && afplay /tmp/tts.wav
+```
+
+Also try a Hindi sentence the same way.
+
+## Step 5 — Full voice loop (closes Phase 1)
+
+With all three services up (LM Studio, STT :8001, TTS :8002):
+
+```bash
+uv run python -m client.voice
+```
+
+Speak; you should hear a reply. The timing table prints a `voice-to-voice`
+number (everything between end-of-recording and start-of-playback). Expect
+seconds, not milliseconds — it's sequential and non-streaming on purpose;
+Phase 2 fixes that. **Phase 1 exit:** EN and HI turns work end-to-end and
+metrics.jsonl has the numbers.
+
 ## Troubleshooting
 
 | Symptom | Fix |
@@ -92,13 +132,15 @@ Start the session in this repo and say where you are, e.g.:
 > Milestone 2 testing result: <what happened / paste errors>. Continue.
 
 Then:
-- **If milestone 2 passed** → update the checkboxes above, commit, start
-  milestone 3: TTS service (`server/`, Higgs Audio v3 4B on GPU 2, port 8002,
-  `POST /synthesize` per the phase spec) + Mac-side playback.
-- **If it failed** → paste the exact error into the session; the usual
-  suspects are in the table above.
-- After milestone 3 → milestone 4 wires record→STT→LLM→TTS→speaker into
-  `client/chat.py`-style loop and closes Phase 1.
+- **If milestones 2–4 passed** → update the checkboxes above, commit, and
+  start **Phase 2 (streaming)**: write `specs/phase-2-streaming.md` first
+  (LLM token streaming, sentence-chunked TTS, playback while generating),
+  then implement.
+- **If something failed** → paste the exact error into the session; the
+  usual suspects are in the table above. The TTS pipeline call in
+  `server/tts_service.py` is the least battle-tested code (transformers
+  pipeline API for Higgs v3) — expect possible API mismatches there; the
+  fix belongs in `synthesize()`, the route contract must not change.
 
 House rules (also in CLAUDE.md): every endpoint via `shared/config.toml`,
 every stage timed, every turn logged to `metrics.jsonl`, decisions recorded

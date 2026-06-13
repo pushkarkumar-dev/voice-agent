@@ -51,8 +51,8 @@ without a rewrite.
 
 ### 3. TTS service (Windows, GPU 2)
 - FastAPI app: `POST /synthesize` — `{text, voice}` → wav bytes.
-- **Higgs Audio v3 4B** via its Python inference API (SGLang-Omni serving is a
-  Phase 5 upgrade). One fixed English-capable + Hindi-capable voice for now.
+- **Higgs Audio v3 4B** via the HF transformers TTS pipeline (optimized
+  serving is a Phase 5 upgrade). One fixed English+Hindi-capable voice for now.
 - If Higgs setup fights back, stub with Kokoro first so the skeleton walks,
   then swap — the route contract doesn't change.
 
@@ -81,5 +81,5 @@ deliverable — Phase 5 automates what it describes.
 
 ## Non-goals (resist)
 
-Streaming, VAD, barge-in, wake words, model bake-offs, web UI, vLLM/SGLang,
+Streaming, VAD, barge-in, wake words, model bake-offs, web UI, vLLM,
 Docker. All have a later phase.
