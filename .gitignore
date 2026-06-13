@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+*.pyc
+metrics.jsonl
+recordings/
+.DS_Store

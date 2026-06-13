@@ -1,0 +1,23 @@
+# All model services live on the Windows GPU box.
+# Override the host without editing this file: VOICEAGENT_HOST=x.x.x.x
+
+[server]
+host = "192.168.0.158"
+
+[llm]
+# LM Studio's OpenAI-compatible server (native Windows app, GPU 1)
+port = 1234
+# qwen3.6-27b rejected for now: thinking mode can't be disabled via the API
+# (tried chat_template_kwargs + /no_think) and reasoning tokens kill voice
+# latency. The VL-8B instruct is clean, fast, and doubles for Phase 6 vision.
+model = "huihui-qwen3-vl-8b-instruct-abliterated"
+temperature = 0.7
+max_tokens = 512
+
+[stt]
+# FastAPI wrapper around faster-whisper (GPU 3) — milestone 2
+port = 8001
+
+[tts]
+# FastAPI wrapper around Higgs Audio v3 (GPU 2) — milestone 3
+port = 8002
