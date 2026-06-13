@@ -65,8 +65,17 @@ code-switching.
   `chat_template_kwargs` and `/no_think`) — reasoning tokens are unusable for
   voice latency. Revisit model choice in Phase 4.
 - **2026-06-13** — Serving stacks constrained to what's familiar: LM Studio,
-  Ollama, llama.cpp, vLLM, HF transformers. **No SGLang.** Higgs Audio v3 runs
-  via the HF transformers TTS pipeline.
+  Ollama, llama.cpp, vLLM, HF transformers. **No SGLang.**
+- **2026-06-13** — **Higgs Audio v3 deferred as Phase-1 TTS.** Its only
+  documented self-hosting path is SGLang-Omni; the model card's
+  `pipeline("text-to-speech")` example crashes (custom multi-codebook arch,
+  not a standard TTS pipeline). Walking-skeleton TTS is now **Meta MMS-TTS**
+  (`facebook/mms-tts-eng` / `-hin`) via the transformers `VitsModel` —
+  rock-solid, runs in plain torch+transformers, covers EN+HI. Modest quality,
+  but Phase 1 is about plumbing. Revisit Higgs (and Qwen3-TTS quality) in the
+  Phase 4 bake-off; if Higgs still needs SGLang then, weigh SGLang-via-WSL2 as
+  a one-off exception vs. another high-quality multilingual TTS. The TTS route
+  contract (`POST /synthesize`) is unchanged, so the swap is server-internal.
 - **2026-06-13** — Open (decide at Phase 6 start): Qwen3-VL as the *brain*
   (replaces the text LLM, agent natively sees) vs *sidecar captioner* feeding
   frame descriptions into the text LLM's context. Sidecar is simpler; brain is

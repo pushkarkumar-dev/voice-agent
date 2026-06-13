@@ -54,26 +54,38 @@ to prove the plumbing.
 
 ## TTS service (GPU 2) — milestone 3
 
-Higgs Audio v3 4B via the HF transformers TTS pipeline
-(`server/tts_service.py`), port **8002**, 24kHz wav out. Same `server/` env
-as STT (`uv sync` covers both; torch comes from the cu128 index — Windows
-default torch is CPU-only and the 5090 needs cu128+).
+`server/tts_service.py`, port **8002**, pluggable backend via `TTS_BACKEND`.
+Same `server/` env as STT (`uv sync` covers both; torch comes from the cu128
+index — Windows default torch is CPU-only and the 5090 needs cu128+).
+
+- **`mms` (default)** — Meta MMS-TTS via transformers `VitsModel`, per-language
+  models (`facebook/mms-tts-eng` / `-hin`, ~100MB each, fast download). This is
+  the Phase 1 walking-skeleton voice: reliable, bilingual, plain transformers.
+- **`higgs`** — Higgs Audio v3; kept for the Phase 4 bake-off. Its supported
+  self-hosting path is SGLang-Omni (out of scope now), so the transformers
+  attempt may fail. Not the default.
 
 ```powershell
 # once, as Administrator:
 netsh advfirewall firewall add rule name="VoiceAgent TTS" dir=in action=allow protocol=TCP localport=8002
 
 $env:CUDA_VISIBLE_DEVICES = "1"   # GPU 2 in our numbering
+# TTS_BACKEND defaults to mms; set "higgs" only for bake-off experiments
 uv run uvicorn tts_service:app --host 0.0.0.0 --port 8002
 ```
 
-First run downloads ~8GB of weights. Smoke test from the Mac:
+Wait for `[tts] backend=mms device=cuda ready`. Smoke test from the Mac:
 
 ```bash
 curl http://192.168.0.158:8002/health
+# English (default voice):
 curl -s -X POST http://192.168.0.158:8002/synthesize \
   -H "Content-Type: application/json" \
-  -d '{"text":"Hello from the voice agent."}' -o /tmp/tts.wav && afplay /tmp/tts.wav
+  -d '{"text":"Hello from the voice agent."}' -o /tmp/en.wav && afplay /tmp/en.wav
+# Hindi (Devanagari + language code routes the hin voice):
+curl -s -X POST http://192.168.0.158:8002/synthesize \
+  -H "Content-Type: application/json" \
+  -d '{"text":"नमस्ते, मैं आपका वॉइस एजेंट हूँ।","language":"hi"}' -o /tmp/hi.wav && afplay /tmp/hi.wav
 ```
 
 ## Windows firewall

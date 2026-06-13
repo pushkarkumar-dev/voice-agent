@@ -43,7 +43,7 @@ async def main() -> None:
             print(f"agent> {completion.text}\n")
 
             with timer.stage("tts"):
-                speech = await tts.synthesize(completion.text)
+                speech = await tts.synthesize(completion.text, language=heard.language)
             with timer.stage("play"):
                 play_wav(speech.wav_bytes)
 

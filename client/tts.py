@@ -21,8 +21,13 @@ class TTSClient:
     def __init__(self, cfg: ServiceConfig) -> None:
         self._http = httpx.AsyncClient(base_url=cfg.base_url, timeout=120.0)
 
-    async def synthesize(self, text: str, voice: str | None = None) -> Synthesis:
-        resp = await self._http.post("/synthesize", json={"text": text, "voice": voice})
+    async def synthesize(
+        self, text: str, language: str | None = None, voice: str | None = None
+    ) -> Synthesis:
+        resp = await self._http.post(
+            "/synthesize",
+            json={"text": text, "language": language, "voice": voice},
+        )
         resp.raise_for_status()
         return Synthesis(
             wav_bytes=resp.content,

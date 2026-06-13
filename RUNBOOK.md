@@ -8,10 +8,12 @@ Last updated: 2026-06-13 (after milestone 2 code, before its first real run)
       verified: EN 630ms, HI 796ms, model `huihui-qwen3-vl-8b-instruct-abliterated`.
 - [ ] **Milestone 2 — STT**: code complete on both sides, **never run on the
       Windows box yet**. That's the next action (below).
-- [ ] **Milestone 3 — TTS** (Higgs Audio v3 via HF transformers, port 8002):
-      code complete, never run. Test right after milestone 2 (step 4 below).
-- [ ] **Milestone 4 — full voice loop** (`client/voice.py`): code complete,
-      never run. Test last (step 5 below); closes Phase 1.
+- [~] **Milestone 3 — TTS** (port 8002): first attempt with Higgs crashed
+      (needs SGLang). Re-pointed at **MMS-TTS** backend (EN+HI). Retest with
+      step 4 below.
+- [~] **Milestone 4 — full voice loop** (`client/voice.py`): STT+LLM verified
+      working in the first run (transcribed + replied correctly); only the TTS
+      stage failed. Should close once MMS TTS works. Retest with step 5.
 
 ## Step 1 — Get the repo onto the Windows box (once)
 
@@ -89,16 +91,23 @@ $env:CUDA_VISIBLE_DEVICES = "1"   # GPU 2
 uv run uvicorn tts_service:app --host 0.0.0.0 --port 8002
 ```
 
-First run downloads ~8GB (Higgs Audio v3 4B). From the Mac:
+Backend defaults to **MMS-TTS** (small per-language models, fast download).
+Wait for `[tts] backend=mms device=cuda ready`, then from the Mac:
 
 ```bash
 curl http://192.168.0.158:8002/health
+# English:
 curl -s -X POST http://192.168.0.158:8002/synthesize \
   -H "Content-Type: application/json" \
-  -d '{"text":"Hello from the voice agent."}' -o /tmp/tts.wav && afplay /tmp/tts.wav
+  -d '{"text":"Hello from the voice agent."}' -o /tmp/en.wav && afplay /tmp/en.wav
+# Hindi:
+curl -s -X POST http://192.168.0.158:8002/synthesize \
+  -H "Content-Type: application/json" \
+  -d '{"text":"नमस्ते, मैं आपका वॉइस एजेंट हूँ।","language":"hi"}' -o /tmp/hi.wav && afplay /tmp/hi.wav
 ```
 
-Also try a Hindi sentence the same way.
+(Higgs Audio v3 was deferred — needs SGLang, out of scope now. MMS is the
+skeleton voice; see PROJECT.md decisions log. Quality is modest by design.)
 
 ## Step 5 — Full voice loop (closes Phase 1)
 
