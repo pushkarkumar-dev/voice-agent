@@ -66,6 +66,11 @@ code-switching.
   voice latency. Revisit model choice in Phase 4.
 - **2026-06-13** — Serving stacks constrained to what's familiar: LM Studio,
   Ollama, llama.cpp, vLLM, HF transformers. **No SGLang.**
+- **2026-06-13** — Phase 3 ships two modes because of speaker echo: half-duplex
+  (default; mic muted while agent speaks; robust on speakers, no barge-in) and
+  barge-in (opt-in `--barge-in`; mic stays live; needs headphones). Acoustic
+  echo cancellation is out of scope — if open-speaker barge-in becomes a
+  requirement, AEC (e.g. WebRTC APM / speexdsp) is the future work.
 - **2026-06-13** — **Higgs Audio v3 deferred as Phase-1 TTS.** Its only
   documented self-hosting path is SGLang-Omni; the model card's
   `pipeline("text-to-speech")` example crashes (custom multi-codebook arch,

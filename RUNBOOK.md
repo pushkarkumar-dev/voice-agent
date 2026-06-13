@@ -21,6 +21,10 @@ Last updated: 2026-06-13 (after milestone 2 code, before its first real run)
       ttft ~0.42s). Full audio path needs a home test — run step 6 below. The
       headline metric is now **ttfa** (time-to-first-audio); compare it against
       Phase 1's voice-to-voice. Real gains need GPU TTS (see CPU-TTS fix).
+- [~] **Phase 3 — hands-free** (`client/voice_hands_free.py`): built. Silero
+      VAD + endpointer verified on the Mac (model loads/runs; endpointer +
+      sentencize unit tests pass). Full mic/barge-in flow needs a home test —
+      step 7 below.
 
 ## Step 1 — Get the repo onto the Windows box (once)
 
@@ -144,6 +148,28 @@ still being generated/synthesized. Per-turn line logs `ttft`,
 `tt_first_sentence`, `ttfa`, `total`. Compare `ttfa` here vs `voice-to-voice`
 from `client.voice` (Phase 1) on the same prompt — that delta is the streaming
 win. Test EN and HI.
+
+## Step 7 — Hands-free (Phase 3)
+
+No keys: the agent listens, detects when you stop talking, and replies. Silero
+VAD runs locally on the Mac (CPU; `uv sync` already pulled it).
+
+```bash
+uv run python -m tests.test_endpointer   # turn-taking state machine (no GPU)
+uv run python -m client.voice_hands_free            # half-duplex (speakers OK)
+uv run python -m client.voice_hands_free --barge-in # barge-in (use headphones)
+```
+
+- **half-duplex (default):** just talk, pause, and it answers. The mic is muted
+  while the agent speaks, so it works on speakers but you can't interrupt it.
+- **`--barge-in`:** talk over the agent to cut it off. **Use headphones** —
+  on speakers the mic hears the agent's own voice and it interrupts itself
+  (no echo cancellation; see the phase spec).
+
+Tuning if it feels off (`client/endpointer.py` defaults): `silence_ms` (700) is
+the main knob — raise it if it cuts you off at pauses, lower it if it feels
+laggy to respond. `threshold` (0.5) up if it triggers on background noise.
+Test EN and HI. Per-turn `ttfa`/`total` log to `metrics.jsonl`.
 
 ## Troubleshooting
 

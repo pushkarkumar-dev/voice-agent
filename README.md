@@ -66,6 +66,7 @@ ends with something runnable; specs live in [`specs/`](specs/).
 2. **Streaming** — LLM token streaming + sentence-chunked TTS; audio plays
    while the reply is still generating. 🚧 (built; home audio test pending)
 3. **Hands-free** — Silero VAD, endpointing, barge-in (interrupt mid-reply).
+   🚧 (built; home mic test pending)
 4. **Model bake-off** — Qwen3-ASR vs Whisper; Higgs/Qwen3-TTS quality on
    EN/HI/Hinglish, scored with the latency + WER harness.
 5. **Deployment + web client** — vLLM serving, auto-start on reboot, browser
