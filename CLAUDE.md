@@ -4,7 +4,8 @@ Fully local English+Hindi voice agent (STT → LLM → TTS), built raw (no
 voice-agent frameworks) for learning, then hardened for deployment.
 
 **Read `PROJECT.md` first** — vision, hardware, model choices, decisions log,
-phase roadmap. Then read the current phase spec in `specs/`.
+phase roadmap. Then read the current phase spec in `specs/` and **`RUNBOOK.md`**
+for exact current status (milestone checkboxes) and how to run everything.
 
 ## Quick facts
 
